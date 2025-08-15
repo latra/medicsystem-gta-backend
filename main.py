@@ -1,5 +1,3 @@
-import dotenv
-dotenv.load_dotenv()
 import os
 from fastapi import FastAPI
 from routers.system_info import system_info_router
