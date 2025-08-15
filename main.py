@@ -1,3 +1,6 @@
+import dotenv
+dotenv.load_dotenv()
+import os
 from fastapi import FastAPI
 from routers.system_info import system_info_router
 from auth.firebase import FirebaseAuth
@@ -8,7 +11,7 @@ from routers.doctor import doctor_router
 from fastapi.middleware.cors import CORSMiddleware
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.firebase_auth = FirebaseAuth("firebase-credentials.json")
+    app.firebase_auth = FirebaseAuth(os.getenv("FIREBASE_CREDENTIALS_PATH"))
     yield
     app.firebase_auth = None
 

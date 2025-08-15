@@ -4,10 +4,12 @@ import firebase_admin
 from firebase_admin import auth, credentials
 from services.doctor import DoctorService
 import time
+import os
+
 security = HTTPBearer()
 doctor_service = DoctorService()
 class FirebaseAuth:
-    def __init__(self, credentials_path: str = "firebase-credentials.json"):
+    def __init__(self, credentials_path: str = os.getenv("FIREBASE_CREDENTIALS_PATH")):
         """Initialize Firebase Admin SDK"""
         if not firebase_admin._apps:
             cred = credentials.Certificate(credentials_path)
