@@ -39,7 +39,7 @@ class PatientService(FirestoreService):
         patient = self.get_whole_patient(patient_dni)
         patient.enabled = False
         patient.disabled_by = disabled_by
-        self.update_patient(patient)
+        self.db.collection(self.patients_collection).document(patient_dni).set(patient.model_dump())
 
     def get_all_patients(self):
         docs = self.db.collection(self.patients_collection).get()
