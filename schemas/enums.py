@@ -14,9 +14,12 @@ class UserRole(str, Enum):
     PATIENT = "patient"
 
 class AttentionType(str, Enum):
+    HOME = "home"
+    HEADQUARTERS = "headquarters"
     STREET = "street"
     HOSPITAL = "hospital"
     TRASLAD = "traslad"
+    OTHER = "other"
 
 class PatientStatus(str, Enum):
     CONSCIOUS = "conscious"

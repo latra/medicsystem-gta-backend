@@ -62,6 +62,6 @@ class PatientService(FirestoreService):
         admitted_patients: list[PatientAdmitted] = []
         for visit in admitted_visits:
             patient = self.get_patient(visit.patient_dni)
-            admitted_patients.append(PatientAdmitted(name=patient.name, dni=patient.dni, visit_id=visit.visit_id, reason=visit.reason, attention_type=visit.attention_type, triage=visit.triage, doctor_dni=visit.doctor_dni, doctor_name=visit.doctor_name))
+            admitted_patients.append(PatientAdmitted(name=patient.name, dni=patient.dni, visit_id=visit.visit_id, reason=visit.reason, attention_place=visit.attention_place, attention_details=visit.attention_details, triage=visit.triage, doctor_dni=visit.doctor_dni, doctor_name=visit.doctor_name))
         
         return admitted_patients

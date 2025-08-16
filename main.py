@@ -9,7 +9,8 @@ from routers.doctor import doctor_router
 from fastapi.middleware.cors import CORSMiddleware
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.firebase_auth = FirebaseAuth(os.getenv("FIREBASE_CREDENTIALS_PATH"))
+    firebase_credentials_path = os.getenv("FIREBASE_CREDENTIALS_PATH") if os.getenv("FIREBASE_CREDENTIALS_PATH") else "firebase-credentials.json"
+    app.firebase_auth = FirebaseAuth(firebase_credentials_path)
     yield
     app.firebase_auth = None
 

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from schemas import BloodType, Gender, AttentionType, Triage
+from typing import Optional
 
 class Patient(BaseModel):
     name: str = Field(..., description="The name of the patient")
@@ -28,7 +29,8 @@ class PatientAdmitted(BaseModel):
     dni: str = Field(..., description="The DNI of the patient")
     visit_id: str = Field(..., description="The ID of the visit")
     reason: str = Field(..., description="The reason of the attention")
-    attention_type: AttentionType = Field(..., description="The type of the attention")
+    attention_place: AttentionType = Field(..., description="The type of the attention")
+    attention_details: Optional[str|None] = Field(None, description="The details of the attention")
     triage: Triage = Field(..., description="The triage of the patient")
     doctor_dni: str = Field(..., description="The DNI of the doctor")
     doctor_name: str = Field(..., description="The name of the doctor")

@@ -6,7 +6,8 @@ from typing import Optional
 class VisitBase(BaseModel):
     patient_dni: str = Field(..., description="The DNI of the patient")
     reason: str = Field(..., description="The reason of the attention")
-    attention_type: AttentionType = Field(..., description="The type of the attention")
+    attention_place: AttentionType = Field(..., description="The type of the attention")
+    attention_details: Optional[str|None] = Field(None, description="The details of the attention")
     location: str = Field(..., description="The location of the attention")
     admission_status: PatientStatus = Field(None, description="The status of the patient on admission")
     admission_heart_rate: Optional[int] = Field(None, description="The heart rate of the patient")
@@ -64,5 +65,6 @@ class VisitSummary(BaseModel):
     date_of_admission: datetime = Field(..., description="The date of the admission")
     date_of_discharge: Optional[datetime|None] = Field(None, description="The date of the discharge")
     reason: str = Field(..., description="The reason of the attention")
-    attention_type: AttentionType = Field(..., description="The type of the attention")
+    attention_place: AttentionType = Field(..., description="The type of the attention")
+    attention_details: Optional[str|None] = Field(None, description="The details of the attention")
     location: str = Field(..., description="The location of the attention")
