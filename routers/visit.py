@@ -6,6 +6,9 @@ from schemas import (
     DiagnosisResponse, PrescriptionCreate, PrescriptionResponse,
     DischargeRequest, Doctor
 )
+from schemas.patient import (
+    BloodAnalysisCreate, BloodAnalysisResponse, RadiologyStudyCreate, RadiologyStudyResponse
+)
 from services.visits import VisitService
 from auth.firebase import FirebaseAuth
 
@@ -30,14 +33,14 @@ async def get_visits_by_patient(
         )
 
 
-@visit_router.get("/info/{visit_id}", response_model=Visit)
+@visit_router.get("/info/{visit_id}", response_model=VisitComplete)
 async def get_visit(
     visit_id: str, 
     current_user: Doctor = Depends(firebase_auth.verify_token)
 ):
-    """Obtiene información básica de una visita por ID"""
+    """Obtiene información completa de una visita por ID incluyendo análisis y estudios"""
     try:
-        visit = visit_service.get_visit(visit_id)
+        visit = visit_service.get_visit_complete(visit_id)
         if not visit:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -313,6 +316,66 @@ async def get_all_visits(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error retrieving all visits: {str(e)}"
+        )
+
+
+@visit_router.post("/{visit_id}/blood-analysis", response_model=BloodAnalysisResponse)
+async def add_blood_analysis_to_visit(
+    visit_id: str,
+    blood_analysis: BloodAnalysisCreate,
+    current_user: Doctor = Depends(firebase_auth.verify_token)
+):
+    """Añade un análisis de sangre a una visita específica"""
+    try:
+        # Usar el método con sincronización automática para duplicar datos
+        result = visit_service.add_blood_analysis_with_patient_sync(
+            visit_id, 
+            blood_analysis, 
+            performed_by_dni=current_user.dni,
+            performed_by_name=current_user.name
+        )
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Visit not found"
+            )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error adding blood analysis to visit: {str(e)}"
+        )
+
+
+@visit_router.post("/{visit_id}/radiology-study", response_model=RadiologyStudyResponse)
+async def add_radiology_study_to_visit(
+    visit_id: str,
+    radiology_study: RadiologyStudyCreate,
+    current_user: Doctor = Depends(firebase_auth.verify_token)
+):
+    """Añade un estudio radiológico a una visita específica"""
+    try:
+        # Usar el método con sincronización automática para duplicar datos
+        result = visit_service.add_radiology_study_with_patient_sync(
+            visit_id, 
+            radiology_study, 
+            performed_by_dni=current_user.dni,
+            performed_by_name=current_user.name
+        )
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Visit not found"
+            )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error adding radiology study to visit: {str(e)}"
         )
 
 
