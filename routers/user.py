@@ -6,7 +6,7 @@ from schemas.user import (
 )
 from schemas.enums import UserRole
 from services.user import UserService
-from auth.authorization import require_admin, require_doctor_or_admin, require_authentication
+from auth.authorization import require_admin, require_doctor_or_admin, require_authentication, require_doctor, require_police
 import logging
 
 user_router = APIRouter(prefix="/user", tags=["user"])
@@ -18,8 +18,24 @@ logger = logging.getLogger(__name__)
 async def get_current_user_profile(
     current_user: User = require_authentication()
 ):
-    """Obtiene el perfil del usuario actual"""
+    """Obtiene el perfil básico del usuario actual"""
     return current_user
+
+
+@user_router.get("/me/doctor", response_model=Doctor)
+async def get_current_doctor_profile(
+    current_doctor: Doctor = require_doctor()
+):
+    """Obtiene el perfil completo del doctor actual"""
+    return current_doctor
+
+
+@user_router.get("/me/police", response_model=Police)
+async def get_current_police_profile(
+    current_police: Police = require_police()
+):
+    """Obtiene el perfil completo del policía actual"""
+    return current_police
 
 
 @user_router.get("/doctors", response_model=List[DoctorSummary])

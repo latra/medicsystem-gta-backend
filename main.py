@@ -7,6 +7,7 @@ from routers.patients import patients_router
 from routers.visit import visit_router
 from routers.doctor import doctor_router
 from routers.user import user_router
+from routers.police import police_router
 from fastapi.middleware.cors import CORSMiddleware
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,3 +30,4 @@ app.include_router(patients_router)
 app.include_router(visit_router)
 app.include_router(doctor_router)
 app.include_router(user_router)
+app.include_router(police_router)
