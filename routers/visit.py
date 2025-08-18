@@ -382,7 +382,7 @@ async def add_radiology_study_to_visit(
 @visit_router.delete("/{visit_id}", status_code=status.HTTP_200_OK)
 async def delete_visit(
     visit_id: str, 
-    current_user: Doctor = Depends(firebase_auth.verify_token)
+    current_user: Doctor = Depends(firebase_auth.verify_admin_token)
 ):
     """Elimina una visita del sistema"""
     try:
