@@ -10,7 +10,8 @@ class VisitStatus(str, Enum):
 
 class UserRole(str, Enum):
     ADMIN = "admin"
-    MEDIC = "medic"
+    DOCTOR = "doctor"  # Cambiado de MEDIC a DOCTOR para mayor claridad
+    POLICE = "police"  # Nueva figura de policía
     PATIENT = "patient"
 
 class AttentionType(str, Enum):
