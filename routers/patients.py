@@ -221,7 +221,7 @@ async def add_radiology_study(
 @patients_router.delete("/{patient_dni}", status_code=status.HTTP_200_OK)
 async def delete_patient(
     patient_dni: str, 
-    current_user: Doctor = Depends(firebase_auth.verify_token)
+    current_user: Doctor = Depends(firebase_auth.verify_admin_token)
 ):
     """Deshabilita un paciente (soft delete)"""
     try:
