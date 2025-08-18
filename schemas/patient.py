@@ -63,12 +63,18 @@ class BloodAnalysisCreate(BaseModel):
     notes: Optional[str] = Field(None, description="Notas adicionales del análisis")
 
 
+class BloodAnalysisCreateForVisit(BloodAnalysisCreate):
+    """Esquema para crear un análisis de sangre relacionado con una visita específica"""
+    visit_id: str = Field(..., description="ID de la visita relacionada")
+
+
 class BloodAnalysisResponse(BloodAnalysisCreate):
     """Esquema de respuesta para análisis de sangre"""
     analysis_id: str = Field(..., description="ID único del análisis")
     date_performed: datetime = Field(..., description="Fecha del análisis")
     performed_by_dni: Optional[str] = Field(None, description="DNI del médico que realizó el análisis")
     performed_by_name: Optional[str] = Field(None, description="Nombre del médico que realizó el análisis")
+    visit_related_id: Optional[str] = Field(None, description="ID de la visita relacionada")
 
 
 class RadiologyStudyCreate(BaseModel):
@@ -78,6 +84,10 @@ class RadiologyStudyCreate(BaseModel):
     findings: str = Field(..., description="Hallazgos del estudio")
     image_url: Optional[str] = Field(None, description="URL de la imagen si está disponible")
 
+class RadiologyStudyCreateForVisit(RadiologyStudyCreate):
+    """Esquema para crear un estudio radiológico relacionado con una visita específica"""
+    visit_id: str = Field(..., description="ID de la visita relacionada")
+
 
 class RadiologyStudyResponse(RadiologyStudyCreate):
     """Esquema de respuesta para estudios radiológicos"""
@@ -85,6 +95,7 @@ class RadiologyStudyResponse(RadiologyStudyCreate):
     date_performed: datetime = Field(..., description="Fecha del estudio")
     performed_by_dni: Optional[str] = Field(None, description="DNI del médico que realizó el estudio")
     performed_by_name: Optional[str] = Field(None, description="Nombre del médico que realizó el estudio")
+    visit_related_id: Optional[str] = Field(None, description="ID de la visita relacionada")
 
 
 class MedicalHistoryResponse(BaseModel):

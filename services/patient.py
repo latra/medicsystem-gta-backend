@@ -158,7 +158,16 @@ class PatientService:
     
     def __init__(self):
         self.repository = PatientRepository()
-        self.visit_service = VisitService()
+        # Evitar import circular usando lazy import
+        self._visit_service = None
+    
+    @property
+    def visit_service(self):
+        """Lazy loading del visit service para evitar imports circulares"""
+        if self._visit_service is None:
+            from services.visits import VisitService
+            self._visit_service = VisitService()
+        return self._visit_service
     
     def _patient_db_to_patient(self, patient_db: PatientDB) -> Patient:
         """Convierte PatientDB a esquema Patient (sin historial completo)"""
@@ -194,7 +203,8 @@ class PatientService:
                 fentanyl=analysis.fentanyl,
                 performed_by_dni=analysis.performed_by_dni,
                 performed_by_name=analysis.performed_by_name,
-                notes=analysis.notes
+                notes=analysis.notes,
+                visit_related_id=analysis.visit_related_id
             ) for analysis in patient_db.medical_history.blood_analyses
         ]
         
@@ -208,7 +218,8 @@ class PatientService:
                 findings=study.findings,
                 image_url=study.image_url,
                 performed_by_dni=study.performed_by_dni,
-                performed_by_name=study.performed_by_name
+                performed_by_name=study.performed_by_name,
+                visit_related_id=study.visit_related_id
             ) for study in patient_db.medical_history.radiology_studies
         ]
         
@@ -327,7 +338,7 @@ class PatientService:
             return complete_patient.medical_history
         return None
     
-    def add_blood_analysis(self, patient_dni: str, analysis_data: BloodAnalysisCreate, performed_by_dni: Optional[str] = None, performed_by_name: Optional[str] = None) -> Optional[BloodAnalysisResponse]:
+    def add_blood_analysis(self, patient_dni: str, analysis_data: BloodAnalysisCreate, performed_by_dni: Optional[str] = None, performed_by_name: Optional[str] = None, visit_id: Optional[str] = None) -> Optional[BloodAnalysisResponse]:
         """Añade un análisis de sangre al paciente"""
         patient_db = self.repository.get_by_dni(patient_dni)
         if not patient_db or not patient_db.enabled:
@@ -352,7 +363,7 @@ class PatientService:
             performed_by_name=performed_by_name
         )
         
-        patient_db.add_blood_analysis(analysis)
+        patient_db.add_blood_analysis(analysis, visit_id)
         
         if self.repository.update(patient_db):
             return BloodAnalysisResponse(
@@ -372,11 +383,12 @@ class PatientService:
                 fentanyl=analysis.fentanyl,
                 performed_by_dni=analysis.performed_by_dni,
                 performed_by_name=analysis.performed_by_name,
-                notes=analysis.notes
+                notes=analysis.notes,
+                visit_related_id=analysis.visit_related_id
             )
         return None
     
-    def add_radiology_study(self, patient_dni: str, study_data: RadiologyStudyCreate, performed_by_dni: Optional[str] = None, performed_by_name: Optional[str] = None) -> Optional[RadiologyStudyResponse]:
+    def add_radiology_study(self, patient_dni: str, study_data: RadiologyStudyCreate, performed_by_dni: Optional[str] = None, performed_by_name: Optional[str] = None, visit_id: Optional[str] = None) -> Optional[RadiologyStudyResponse]:
         """Añade un estudio radiológico al paciente"""
         patient_db = self.repository.get_by_dni(patient_dni)
         if not patient_db or not patient_db.enabled:
@@ -392,7 +404,7 @@ class PatientService:
             performed_by_name=performed_by_name
         )
         
-        patient_db.add_radiology_study(study)
+        patient_db.add_radiology_study(study, visit_id)
         
         if self.repository.update(patient_db):
             return RadiologyStudyResponse(
@@ -403,7 +415,8 @@ class PatientService:
                 findings=study.findings,
                 image_url=study.image_url,
                 performed_by_dni=study.performed_by_dni,
-                performed_by_name=study.performed_by_name
+                performed_by_name=study.performed_by_name,
+                visit_related_id=study.visit_related_id
             )
         return None
     

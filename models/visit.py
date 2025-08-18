@@ -1,8 +1,12 @@
+from __future__ import annotations
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from schemas.enums import AttentionType, PatientStatus, Triage, VisitStatus
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from models.patient import BloodAnalysis, RadiologyStudy
 
 
 class VitalSigns(BaseModel):
@@ -106,6 +110,10 @@ class VisitDB(BaseModel):
     imaging_orders: List[str] = Field(default_factory=list, description="Órdenes de imagenología")
     referrals: List[str] = Field(default_factory=list, description="Referencias a especialistas")
     
+    # Análisis de sangre y estudios radiológicos relacionados con esta visita específica
+    blood_analyses: List['BloodAnalysis'] = Field(default_factory=list, description="Análisis de sangre realizados durante esta visita")
+    radiology_studies: List['RadiologyStudy'] = Field(default_factory=list, description="Estudios radiológicos realizados durante esta visita")
+    
     # Información de alta/discharge
     discharge_summary: Optional[str] = Field(None, description="Resumen de alta")
     discharge_instructions: Optional[str] = Field(None, description="Instrucciones de alta")
@@ -208,4 +216,45 @@ class VisitDB(BaseModel):
             return int(delta.total_seconds() / 3600)
         else:
             delta = datetime.now() - self.admission_date
-            return int(delta.total_seconds() / 3600) 
+            return int(delta.total_seconds() / 3600)
+    
+    def add_blood_analysis(self, analysis: 'BloodAnalysis', performed_by: Optional[str] = None):
+        """Añade un análisis de sangre a esta visita específica"""
+        if performed_by:
+            analysis.performed_by_dni = performed_by
+        # Asegurarse de que el análisis esté relacionado con esta visita
+        analysis.visit_related_id = self.visit_id
+        self.blood_analyses.append(analysis)
+        self.update_timestamp(performed_by)
+    
+    def add_radiology_study(self, study: 'RadiologyStudy', performed_by: Optional[str] = None):
+        """Añade un estudio radiológico a esta visita específica"""
+        if performed_by:
+            study.performed_by_dni = performed_by
+        # Asegurarse de que el estudio esté relacionado con esta visita
+        study.visit_related_id = self.visit_id
+        self.radiology_studies.append(study)
+        self.update_timestamp(performed_by)
+    
+    def get_latest_blood_analysis(self) -> Optional['BloodAnalysis']:
+        """Obtiene el análisis de sangre más reciente de esta visita"""
+        if not self.blood_analyses:
+            return None
+        return max(self.blood_analyses, key=lambda x: x.date_performed)
+    
+    def get_latest_radiology_study(self) -> Optional['RadiologyStudy']:
+        """Obtiene el estudio radiológico más reciente de esta visita"""
+        if not self.radiology_studies:
+            return None
+        return max(self.radiology_studies, key=lambda x: x.date_performed)
+
+
+# Llamada para reconstruir el modelo después de que todas las referencias estén disponibles
+def rebuild_visit_models():
+    """Reconstruye los modelos de visita para resolver referencias forward"""
+    try:
+        from models.patient import BloodAnalysis, RadiologyStudy
+        VisitDB.model_rebuild()
+    except ImportError:
+        # Si aún no están disponibles, se reconstruirá cuando sea necesario
+        pass 

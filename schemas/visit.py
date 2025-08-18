@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from schemas import AttentionType, PatientStatus, Triage, VisitStatus
+from schemas.patient import BloodAnalysisResponse, RadiologyStudyResponse
 from datetime import datetime
 from typing import Optional, List
 
@@ -213,6 +214,10 @@ class VisitComplete(BaseModel):
     laboratory_orders: List[str] = Field(default_factory=list, description="Órdenes de laboratorio")
     imaging_orders: List[str] = Field(default_factory=list, description="Órdenes de imagenología")
     referrals: List[str] = Field(default_factory=list, description="Referencias a especialistas")
+    
+    # Análisis de sangre y estudios radiológicos relacionados con esta visita
+    blood_analyses: List[BloodAnalysisResponse] = Field(default_factory=list, description="Análisis de sangre realizados durante esta visita")
+    radiology_studies: List[RadiologyStudyResponse] = Field(default_factory=list, description="Estudios radiológicos realizados durante esta visita")
     
     # Información de alta
     discharge_summary: Optional[str] = Field(None, description="Resumen de alta")

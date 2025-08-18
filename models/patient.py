@@ -24,7 +24,7 @@ class BloodAnalysis(BaseModel):
     performed_by_dni: Optional[str] = Field(None, description="DNI del médico que realizó el análisis")
     performed_by_name: Optional[str] = Field(None, description="Nombre del médico que realizó el análisis")
     notes: Optional[str] = Field(None, description="Notas adicionales del análisis")
-
+    visit_related_id: Optional[str] = Field(None, description="ID de la visita relacionada")
 
 class RadiologyStudy(BaseModel):
     """Modelo para estudios radiológicos del paciente"""
@@ -36,6 +36,7 @@ class RadiologyStudy(BaseModel):
     image_url: Optional[str] = Field(None, description="URL de la imagen si está disponible")
     performed_by_dni: Optional[str] = Field(None, description="DNI del médico que realizó el estudio")
     performed_by_name: Optional[str] = Field(None, description="Nombre del médico que realizó el estudio")
+    visit_related_id: Optional[str] = Field(None, description="ID de la visita relacionada")
 
 
 class MedicalHistory(BaseModel):
@@ -83,14 +84,32 @@ class PatientDB(BaseModel):
         if updated_by:
             self.last_updated_by = updated_by
             
-    def add_blood_analysis(self, analysis: BloodAnalysis):
-        """Añade un nuevo análisis de sangre al historial"""
+    def add_blood_analysis(self, analysis: BloodAnalysis, visit_id: Optional[str] = None):
+        """Añade un nuevo análisis de sangre al historial
+        
+        Args:
+            analysis: El análisis de sangre a añadir
+            visit_id: ID de la visita si el análisis está relacionado con una visita específica
+        """
+        # Si se proporciona un visit_id, establecer la relación
+        if visit_id:
+            analysis.visit_related_id = visit_id
+            
         self.medical_history.blood_analyses.append(analysis)
         self.medical_history.last_updated = datetime.now()
         self.update_timestamp(analysis.performed_by_dni)
         
-    def add_radiology_study(self, study: RadiologyStudy):
-        """Añade un nuevo estudio radiológico al historial"""
+    def add_radiology_study(self, study: RadiologyStudy, visit_id: Optional[str] = None):
+        """Añade un nuevo estudio radiológico al historial
+        
+        Args:
+            study: El estudio radiológico a añadir
+            visit_id: ID de la visita si el estudio está relacionado con una visita específica
+        """
+        # Si se proporciona un visit_id, establecer la relación
+        if visit_id:
+            study.visit_related_id = visit_id
+            
         self.medical_history.radiology_studies.append(study)
         self.medical_history.last_updated = datetime.now()
         self.update_timestamp(study.performed_by_dni)
@@ -106,3 +125,36 @@ class PatientDB(BaseModel):
         if not self.medical_history.radiology_studies:
             return None
         return max(self.medical_history.radiology_studies, key=lambda x: x.date_performed)
+    
+    def get_blood_analyses_by_visit(self, visit_id: str) -> List[BloodAnalysis]:
+        """Obtiene todos los análisis de sangre relacionados con una visita específica"""
+        return [analysis for analysis in self.medical_history.blood_analyses 
+                if analysis.visit_related_id == visit_id]
+    
+    def get_radiology_studies_by_visit(self, visit_id: str) -> List[RadiologyStudy]:
+        """Obtiene todos los estudios radiológicos relacionados con una visita específica"""
+        return [study for study in self.medical_history.radiology_studies 
+                if study.visit_related_id == visit_id]
+    
+    def get_unrelated_blood_analyses(self) -> List[BloodAnalysis]:
+        """Obtiene análisis de sangre que no están relacionados con ninguna visita específica"""
+        return [analysis for analysis in self.medical_history.blood_analyses 
+                if not analysis.visit_related_id]
+    
+    def get_unrelated_radiology_studies(self) -> List[RadiologyStudy]:
+        """Obtiene estudios radiológicos que no están relacionados con ninguna visita específica"""
+        return [study for study in self.medical_history.radiology_studies 
+                if not study.visit_related_id]
+
+
+# Función para reconstruir modelos si es necesario
+def rebuild_patient_models():
+    """Reconstruye los modelos de paciente para resolver cualquier referencia forward"""
+    try:
+        PatientDB.model_rebuild()
+        MedicalHistory.model_rebuild()
+        BloodAnalysis.model_rebuild()
+        RadiologyStudy.model_rebuild()
+    except Exception:
+        # Si falla, no es crítico
+        pass

@@ -6,6 +6,10 @@ from schemas import (
     PrescriptionCreate, PrescriptionResponse, MedicalProcedureCreate, MedicalProcedureResponse,
     MedicalEvolutionCreate, MedicalEvolutionResponse, DischargeRequest, Doctor
 )
+from schemas.patient import (
+    BloodAnalysisCreate, BloodAnalysisResponse, RadiologyStudyCreate, RadiologyStudyResponse
+)
+from models.patient import BloodAnalysis, RadiologyStudy
 from services.doctor import DoctorService
 from firebase_admin import firestore
 from typing import Optional, List
@@ -101,6 +105,24 @@ class VisitRepository(FirestoreService):
                         prescription['prescribed_at'] = datetime.fromisoformat(prescription['prescribed_at'].replace('Z', '+00:00'))
                     except ValueError:
                         prescription['prescribed_at'] = datetime.now()
+        
+        # Análisis de sangre
+        if 'blood_analyses' in data:
+            for analysis in data['blood_analyses']:
+                if 'date_performed' in analysis and isinstance(analysis['date_performed'], str):
+                    try:
+                        analysis['date_performed'] = datetime.fromisoformat(analysis['date_performed'].replace('Z', '+00:00'))
+                    except ValueError:
+                        analysis['date_performed'] = datetime.now()
+        
+        # Estudios radiológicos
+        if 'radiology_studies' in data:
+            for study in data['radiology_studies']:
+                if 'date_performed' in study and isinstance(study['date_performed'], str):
+                    try:
+                        study['date_performed'] = datetime.fromisoformat(study['date_performed'].replace('Z', '+00:00'))
+                    except ValueError:
+                        study['date_performed'] = datetime.now()
     
     def get_by_id(self, visit_id: str) -> Optional[VisitDB]:
         """Obtiene una visita por ID"""
@@ -247,7 +269,9 @@ class VisitRepository(FirestoreService):
             ('diagnoses', 'diagnosed_at'),
             ('procedures', 'performed_at'),
             ('evolutions', 'recorded_at'),
-            ('prescriptions', 'prescribed_at')
+            ('prescriptions', 'prescribed_at'),
+            ('blood_analyses', 'date_performed'),
+            ('radiology_studies', 'date_performed')
         ]:
             if medical_list in visit_dict:
                 for item in visit_dict[medical_list]:
@@ -263,6 +287,15 @@ class VisitService:
     def __init__(self):
         self.repository = VisitRepository()
         self.doctor_service = DoctorService()
+        
+        # Reconstruir modelos para resolver referencias forward
+        try:
+            from models.visit import rebuild_visit_models
+            from models.patient import rebuild_patient_models
+            rebuild_visit_models()
+            rebuild_patient_models()
+        except ImportError:
+            pass
     
     def _visit_db_to_visit(self, visit_db: VisitDB, doctor_info: Optional[Doctor] = None) -> Visit:
         """Convierte VisitDB a esquema Visit (compatible con API actual)"""
@@ -403,6 +436,45 @@ class VisitService:
             ) for p in visit_db.prescriptions
         ]
         
+        # Convertir análisis de sangre
+        blood_analyses = [
+            BloodAnalysisResponse(
+                analysis_id=analysis.analysis_id,
+                date_performed=analysis.date_performed,
+                red_blood_cells=analysis.red_blood_cells,
+                hemoglobin=analysis.hemoglobin,
+                hematocrit=analysis.hematocrit,
+                platelets=analysis.platelets,
+                lymphocytes=analysis.lymphocytes,
+                glucose=analysis.glucose,
+                cholesterol=analysis.cholesterol,
+                urea=analysis.urea,
+                cocaine=analysis.cocaine,
+                alcohol=analysis.alcohol,
+                mdma=analysis.mdma,
+                fentanyl=analysis.fentanyl,
+                performed_by_dni=analysis.performed_by_dni,
+                performed_by_name=analysis.performed_by_name,
+                notes=analysis.notes,
+                visit_related_id=analysis.visit_related_id
+            ) for analysis in visit_db.blood_analyses
+        ]
+        
+        # Convertir estudios radiológicos
+        radiology_studies = [
+            RadiologyStudyResponse(
+                study_id=study.study_id,
+                date_performed=study.date_performed,
+                study_type=study.study_type,
+                body_part=study.body_part,
+                findings=study.findings,
+                image_url=study.image_url,
+                performed_by_dni=study.performed_by_dni,
+                performed_by_name=study.performed_by_name,
+                visit_related_id=study.visit_related_id
+            ) for study in visit_db.radiology_studies
+        ]
+        
         return VisitComplete(
             visit_id=visit_db.visit_id,
             patient_dni=visit_db.patient_dni,
@@ -424,6 +496,8 @@ class VisitService:
             laboratory_orders=visit_db.laboratory_orders,
             imaging_orders=visit_db.imaging_orders,
             referrals=visit_db.referrals,
+            blood_analyses=blood_analyses,
+            radiology_studies=radiology_studies,
             discharge_summary=visit_db.discharge_summary,
             discharge_instructions=visit_db.discharge_instructions,
             follow_up_required=visit_db.follow_up_required,
@@ -487,7 +561,8 @@ class VisitService:
                 attending_doctor_dni=doctor.dni,
                 referring_doctor_dni=doctor.dni,
                 admission_vital_signs=admission_vital_signs,
-                created_by=doctor.dni
+                created_by=doctor.dni,
+
             )
             
             if self.repository.create(visit_db):
@@ -777,4 +852,168 @@ class VisitService:
             return None
         except Exception as e:
             logger.error(f"Error adding prescription to visit {visit_id}: {e}")
+            return None
+    
+    def add_blood_analysis(self, visit_id: str, analysis_data: BloodAnalysisCreate, performed_by_dni: Optional[str] = None, performed_by_name: Optional[str] = None) -> Optional[BloodAnalysisResponse]:
+        """Añade un análisis de sangre a una visita específica"""
+        visit_db = self.repository.get_by_id(visit_id)
+        if not visit_db:
+            return None
+        
+        try:
+            # Crear análisis de sangre
+            analysis = BloodAnalysis(
+                red_blood_cells=analysis_data.red_blood_cells,
+                hemoglobin=analysis_data.hemoglobin,
+                hematocrit=analysis_data.hematocrit,
+                platelets=analysis_data.platelets,
+                lymphocytes=analysis_data.lymphocytes,
+                glucose=analysis_data.glucose,
+                cholesterol=analysis_data.cholesterol,
+                urea=analysis_data.urea,
+                cocaine=analysis_data.cocaine,
+                alcohol=analysis_data.alcohol,
+                mdma=analysis_data.mdma,
+                fentanyl=analysis_data.fentanyl,
+                notes=analysis_data.notes,
+                performed_by_dni=performed_by_dni,
+                performed_by_name=performed_by_name,
+                visit_related_id=visit_id  # Establecer la relación con la visita
+            )
+            
+            # Añadir análisis a la visita
+            visit_db.add_blood_analysis(analysis, performed_by_dni)
+            
+            if self.repository.update(visit_db):
+                return BloodAnalysisResponse(
+                    analysis_id=analysis.analysis_id,
+                    date_performed=analysis.date_performed,
+                    red_blood_cells=analysis.red_blood_cells,
+                    hemoglobin=analysis.hemoglobin,
+                    hematocrit=analysis.hematocrit,
+                    platelets=analysis.platelets,
+                    lymphocytes=analysis.lymphocytes,
+                    glucose=analysis.glucose,
+                    cholesterol=analysis.cholesterol,
+                    urea=analysis.urea,
+                    cocaine=analysis.cocaine,
+                    alcohol=analysis.alcohol,
+                    mdma=analysis.mdma,
+                    fentanyl=analysis.fentanyl,
+                    performed_by_dni=analysis.performed_by_dni,
+                    performed_by_name=analysis.performed_by_name,
+                    notes=analysis.notes,
+                    visit_related_id=analysis.visit_related_id
+                )
+            return None
+        except Exception as e:
+            logger.error(f"Error adding blood analysis to visit {visit_id}: {e}")
+            return None
+    
+    def add_radiology_study(self, visit_id: str, study_data: RadiologyStudyCreate, performed_by_dni: Optional[str] = None, performed_by_name: Optional[str] = None) -> Optional[RadiologyStudyResponse]:
+        """Añade un estudio radiológico a una visita específica"""
+        visit_db = self.repository.get_by_id(visit_id)
+        if not visit_db:
+            return None
+        
+        try:
+            # Crear estudio radiológico
+            study = RadiologyStudy(
+                study_type=study_data.study_type,
+                body_part=study_data.body_part,
+                findings=study_data.findings,
+                image_url=study_data.image_url,
+                performed_by_dni=performed_by_dni,
+                performed_by_name=performed_by_name,
+                visit_related_id=visit_id  # Establecer la relación con la visita
+            )
+            
+            # Añadir estudio a la visita
+            visit_db.add_radiology_study(study, performed_by_dni)
+            
+            if self.repository.update(visit_db):
+                return RadiologyStudyResponse(
+                    study_id=study.study_id,
+                    date_performed=study.date_performed,
+                    study_type=study.study_type,
+                    body_part=study.body_part,
+                    findings=study.findings,
+                    image_url=study.image_url,
+                    performed_by_dni=study.performed_by_dni,
+                    performed_by_name=study.performed_by_name,
+                    visit_related_id=study.visit_related_id
+                )
+            return None
+        except Exception as e:
+            logger.error(f"Error adding radiology study to visit {visit_id}: {e}")
+            return None
+    
+    def add_blood_analysis_with_patient_sync(self, visit_id: str, analysis_data: BloodAnalysisCreate, performed_by_dni: Optional[str] = None, performed_by_name: Optional[str] = None) -> Optional[BloodAnalysisResponse]:
+        """Añade un análisis de sangre tanto a la visita como al historial del paciente"""
+        from services.patient import PatientService  # Import local para evitar import circular
+        
+        visit_db = self.repository.get_by_id(visit_id)
+        if not visit_db:
+            return None
+        
+        try:
+            # Primero añadir a la visita
+            visit_result = self.add_blood_analysis(visit_id, analysis_data, performed_by_dni, performed_by_name)
+            if not visit_result:
+                return None
+            
+            # Luego añadir al historial del paciente
+            patient_service = PatientService()
+            patient_result = patient_service.add_blood_analysis(
+                visit_db.patient_dni, 
+                analysis_data, 
+                performed_by_dni, 
+                performed_by_name, 
+                visit_id
+            )
+            
+            if patient_result:
+                logger.info(f"Blood analysis {visit_result.analysis_id} added to both visit {visit_id} and patient {visit_db.patient_dni}")
+                return visit_result
+            else:
+                logger.warning(f"Blood analysis added to visit {visit_id} but failed to add to patient {visit_db.patient_dni}")
+                return visit_result
+                
+        except Exception as e:
+            logger.error(f"Error adding blood analysis with patient sync to visit {visit_id}: {e}")
+            return None
+    
+    def add_radiology_study_with_patient_sync(self, visit_id: str, study_data: RadiologyStudyCreate, performed_by_dni: Optional[str] = None, performed_by_name: Optional[str] = None) -> Optional[RadiologyStudyResponse]:
+        """Añade un estudio radiológico tanto a la visita como al historial del paciente"""
+        from services.patient import PatientService  # Import local para evitar import circular
+        
+        visit_db = self.repository.get_by_id(visit_id)
+        if not visit_db:
+            return None
+        
+        try:
+            # Primero añadir a la visita
+            visit_result = self.add_radiology_study(visit_id, study_data, performed_by_dni, performed_by_name)
+            if not visit_result:
+                return None
+            
+            # Luego añadir al historial del paciente
+            patient_service = PatientService()
+            patient_result = patient_service.add_radiology_study(
+                visit_db.patient_dni, 
+                study_data, 
+                performed_by_dni, 
+                performed_by_name, 
+                visit_id
+            )
+            
+            if patient_result:
+                logger.info(f"Radiology study {visit_result.study_id} added to both visit {visit_id} and patient {visit_db.patient_dni}")
+                return visit_result
+            else:
+                logger.warning(f"Radiology study added to visit {visit_id} but failed to add to patient {visit_db.patient_dni}")
+                return visit_result
+                
+        except Exception as e:
+            logger.error(f"Error adding radiology study with patient sync to visit {visit_id}: {e}")
             return None
