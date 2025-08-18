@@ -1,5 +1,29 @@
 from .enums import BloodType, AttentionType, PatientStatus, UserRole, Gender, VisitStatus, Triage
-from .patient import Patient, PatientCreate, PatientUpdate, PatientAdmitted
-from .visit import VisitBase, Visit, VisitUpdate, VisitSummary
+from .patient import (
+    PatientBase, Patient, PatientCreate, PatientUpdate, PatientAdmitted, 
+    PatientComplete, PatientSummary, PatientMedicalHistoryUpdate,
+    BloodAnalysisCreate, BloodAnalysisResponse, RadiologyStudyCreate, 
+    RadiologyStudyResponse, MedicalHistoryResponse, PatientSearchFilters
+)
+from .visit import (
+    VisitBase, Visit, VisitCreate, VisitUpdate, VisitSummary, VisitComplete,
+    VitalSignsBase, VitalSignsResponse, DiagnosisCreate, DiagnosisResponse,
+    PrescriptionCreate, PrescriptionResponse, MedicalProcedureCreate,
+    MedicalProcedureResponse, MedicalEvolutionCreate, MedicalEvolutionResponse,
+    DischargeRequest, VisitSearchFilters
+)
 from .doctor import Doctor, DoctorCreate
-__all__ = ["BloodType", "AttentionType", "PatientStatus", "UserRole", "Patient", "VisitBase", "Visit", "Triage", "Gender", "VisitStatus", "Doctor", "VisitUpdate", "DoctorCreate", "PatientCreate", "PatientUpdate", "VisitSummary", "PatientAdmitted"   ]            
+
+__all__ = [
+    "BloodType", "AttentionType", "PatientStatus", "UserRole", "Gender", "VisitStatus", "Triage",
+    "PatientBase", "Patient", "PatientCreate", "PatientUpdate", "PatientAdmitted", 
+    "PatientComplete", "PatientSummary", "PatientMedicalHistoryUpdate",
+    "BloodAnalysisCreate", "BloodAnalysisResponse", "RadiologyStudyCreate", 
+    "RadiologyStudyResponse", "MedicalHistoryResponse", "PatientSearchFilters",
+    "VisitBase", "Visit", "VisitCreate", "VisitUpdate", "VisitSummary", "VisitComplete",
+    "VitalSignsBase", "VitalSignsResponse", "DiagnosisCreate", "DiagnosisResponse",
+    "PrescriptionCreate", "PrescriptionResponse", "MedicalProcedureCreate",
+    "MedicalProcedureResponse", "MedicalEvolutionCreate", "MedicalEvolutionResponse",
+    "DischargeRequest", "VisitSearchFilters",
+    "Doctor", "DoctorCreate"
+]            
