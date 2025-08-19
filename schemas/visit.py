@@ -110,7 +110,7 @@ class VisitCreate(VisitBase):
     
     # Signos vitales de admisión (campos compatibles con API actual)
     admission_heart_rate: Optional[int] = Field(None, ge=30, le=300, description="Frecuencia cardíaca de admisión")
-    admission_blood_pressure: Optional[int] = Field(None, ge=50, le=300, description="Presión sistólica de admisión")
+    admission_blood_pressure: Optional[str] = Field(None, description="Presión arterial de admisión")
     admission_temperature: Optional[float] = Field(None, ge=30.0, le=45.0, description="Temperatura de admisión")
     admission_oxygen_saturation: Optional[int] = Field(None, ge=70, le=100, description="Saturación de oxígeno de admisión")
     admission_status: Optional[PatientStatus] = Field(None, description="Estado del paciente en admisión")
@@ -125,7 +125,7 @@ class VisitUpdate(BaseModel):
     
     # Campos compatibles con API actual
     admission_heart_rate: Optional[int] = Field(None, ge=30, le=300, description="Frecuencia cardíaca")
-    admission_blood_pressure: Optional[int] = Field(None, ge=50, le=300, description="Presión arterial")
+    admission_blood_pressure: Optional[str] = Field(None, description="Presión arterial")
     admission_temperature: Optional[float] = Field(None, ge=30.0, le=45.0, description="Temperatura")
     admission_oxygen_saturation: Optional[int] = Field(None, ge=70, le=100, description="Saturación de oxígeno")
     

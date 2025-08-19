@@ -1,4 +1,5 @@
 from __future__ import annotations
+from locale import strcoll
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional, List, TYPE_CHECKING
@@ -14,8 +15,8 @@ class VitalSigns(BaseModel):
     measurement_id: str = Field(default_factory=lambda: str(uuid4()), description="ID único de la medición")
     measured_at: datetime = Field(default_factory=datetime.now, description="Fecha y hora de la medición")
     heart_rate: Optional[int] = Field(None, ge=30, le=300, description="Frecuencia cardíaca (bpm)")
-    systolic_pressure: Optional[int] = Field(None, ge=50, le=300, description="Presión sistólica (mmHg)")
-    diastolic_pressure: Optional[int] = Field(None, ge=30, le=200, description="Presión diastólica (mmHg)")
+    systolic_pressure: Optional[str] = Field(None, ge=50, le=300, description="Presión sistólica (mmHg)")
+    diastolic_pressure: Optional[str] = Field(None, ge=30, le=200, description="Presión diastólica (mmHg)")
     temperature: Optional[float] = Field(None, ge=30.0, le=45.0, description="Temperatura corporal (°C)")
     oxygen_saturation: Optional[int] = Field(None, ge=70, le=100, description="Saturación de oxígeno (%)")
     respiratory_rate: Optional[int] = Field(None, ge=8, le=60, description="Frecuencia respiratoria (rpm)")
