@@ -1,0 +1,121 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "patients",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "field_path": "enabled",
+          "order": "ASCENDING"
+        },
+        {
+          "field_path": "name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "visits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "field_path": "patient_dni",
+          "order": "ASCENDING"
+        },
+        {
+          "field_path": "admission_date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "visits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "field_path": "attending_doctor_dni",
+          "order": "ASCENDING"
+        },
+        {
+          "field_path": "admission_date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "visits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "field_path": "visit_status",
+          "order": "ASCENDING"
+        },
+        {
+          "field_path": "admission_date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "exam_results",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "field_path": "patient_dni",
+          "order": "ASCENDING"
+        },
+        {
+          "field_path": "exam_date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "exam_results",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "field_path": "exam_id",
+          "order": "ASCENDING"
+        },
+        {
+          "field_path": "exam_date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "exam_results",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "field_path": "exam_id",
+          "order": "ASCENDING"
+        },
+        {
+          "field_path": "patient_dni",
+          "order": "ASCENDING"
+        },
+        {
+          "field_path": "exam_date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "exams",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "field_path": "enabled",
+          "order": "ASCENDING"
+        },
+        {
+          "field_path": "name",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

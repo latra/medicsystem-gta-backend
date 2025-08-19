@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, status
 from schemas.exam import (
     ExamCreate, CategoryCreate, QuestionCreate, ExamSubmission,
     ExamResultResponse, ExamResultDetailResponse, PatientExamHistoryResponse,
     PatientsWithExamsResponse, ExamStatisticsResponse, PatientExamSummary
 )
+from schemas.exam_certificate import ExamCertificateResponse
 from services.exam import exam_service
 from services.exam_results import exam_result_service
 from auth.authorization import require_exam_admin, require_exam_access
@@ -291,3 +292,24 @@ def search_patients_with_exams(
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@exam_router.get("/get_certificate/{exam_id}/{patient_dni}", response_model=ExamCertificateResponse)
+async def get_exam_certificate(
+    exam_id: str,
+    patient_dni: str,
+    current_user: User = require_exam_access()
+):
+    """Obtiene el certificado del último examen realizado por un paciente"""
+    try:
+        certificate = exam_result_service.get_latest_exam_certificate(exam_id, patient_dni)
+        if not certificate:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No exam results found for patient {patient_dni} and exam {exam_id}"
+            )
+        return certificate
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving exam certificate: {str(e)}"
+        )

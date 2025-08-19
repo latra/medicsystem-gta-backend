@@ -7,6 +7,7 @@ from schemas.exam import (
     PatientExamHistoryResponse, QuestionAnswerResult, PatientExamSummary,
     PatientsWithExamsResponse, ExamStatisticsResponse, ExamResultSummary
 )
+from schemas.exam_certificate import ExamCertificateResponse
 from schemas.enums import ExamResultStatus
 from firebase_admin import firestore
 from typing import Optional, List, Dict
@@ -106,6 +107,23 @@ class ExamResultRepository(FirestoreService):
         except Exception as e:
             logger.error(f"Error getting results for exam {exam_id}: {e}")
             return []
+            
+    def get_latest_by_exam_and_patient(self, exam_id: str, patient_dni: str) -> Optional[ExamResultDB]:
+        """Obtiene el resultado más reciente de un examen específico para un paciente"""
+        try:
+            docs = self.db.collection(self.results_collection)\
+                .where("exam_id", "==", exam_id)\
+                .where("patient_dni", "==", patient_dni)\
+                .order_by("exam_date", direction="DESCENDING")\
+                .limit(1)\
+                .get()
+            
+            for doc in docs:  # Solo debería haber uno por el limit(1)
+                return self._document_to_result_db(doc)
+            return None
+        except Exception as e:
+            logger.error(f"Error getting latest result for exam {exam_id} and patient {patient_dni}: {e}")
+            return None
     
     def get_patients_with_exams(self) -> List[str]:
         """Obtiene lista de DNIs únicos de pacientes que han realizado exámenes"""
@@ -304,6 +322,28 @@ class ExamResultService:
             return None
         except Exception as e:
             logger.error(f"Error getting exam result {result_id}: {e}")
+            return None
+            
+    def get_latest_exam_certificate(self, exam_id: str, patient_dni: str) -> Optional[ExamCertificateResponse]:
+        """Obtiene el certificado del último examen realizado por un paciente"""
+        try:
+            # Obtener el último resultado del examen para el paciente
+            result_db = self.repository.get_latest_by_exam_and_patient(exam_id, patient_dni)
+            if not result_db:
+                return None
+                
+            # Crear el certificado
+            return ExamCertificateResponse(
+                citizen_dni=result_db.patient_dni,
+                citizen_name=result_db.patient_name,
+                exam_pass=result_db.is_approved,
+                exam_date=result_db.exam_date,
+                doctor_dni=result_db.examiner_dni,
+                doctor_name=result_db.examiner_name
+            )
+            
+        except Exception as e:
+            logger.error(f"Error getting exam certificate for exam {exam_id} and patient {patient_dni}: {e}")
             return None
     
     def get_all_exam_results(self, limit: Optional[int] = None) -> List[ExamResultResponse]:

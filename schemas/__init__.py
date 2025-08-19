@@ -18,6 +18,7 @@ from .user import (
     Doctor as DoctorNew, DoctorCreate as DoctorCreateNew, DoctorUpdate, DoctorSummary, DoctorProfile, DoctorRegister,
     Police, PoliceCreate, PoliceUpdate, PoliceSummary, PoliceProfile, PoliceRegister
 )
+from .exam_certificate import ExamCertificateResponse
 
 __all__ = [
     "BloodType", "AttentionType", "PatientStatus", "UserRole", "Gender", "VisitStatus", "Triage",
@@ -33,5 +34,6 @@ __all__ = [
     "Doctor", "DoctorCreate",
     "User", "UserCreate", "UserUpdate", "UserSummary", "UserSearchFilters",
     "DoctorNew", "DoctorCreateNew", "DoctorUpdate", "DoctorSummary", "DoctorProfile", "DoctorRegister",
-    "Police", "PoliceCreate", "PoliceUpdate", "PoliceSummary", "PoliceProfile", "PoliceRegister"
+    "Police", "PoliceCreate", "PoliceUpdate", "PoliceSummary", "PoliceProfile", "PoliceRegister",
+    "ExamCertificateResponse"
 ]            
