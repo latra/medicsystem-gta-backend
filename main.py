@@ -9,6 +9,8 @@ from routers.doctor import doctor_router
 from routers.user import user_router
 from routers.police import police_router
 from fastapi.middleware.cors import CORSMiddleware
+from routers.exams import exam_router
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     firebase_credentials_path = os.getenv("FIREBASE_CREDENTIALS_PATH") if os.getenv("FIREBASE_CREDENTIALS_PATH") else "firebase-credentials.json"
@@ -31,3 +33,4 @@ app.include_router(visit_router)
 app.include_router(doctor_router)
 app.include_router(user_router)
 app.include_router(police_router)
+app.include_router(exam_router)

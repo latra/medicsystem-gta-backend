@@ -206,6 +206,14 @@ def require_medical_or_admin():
     """Requiere acceso médico o de administrador"""
     return Depends(auth_service.verify_doctor_or_admin)
 
+def require_exam_access():
+    """Requiere acceso a exámenes (doctores y policías)"""
+    return require_roles([UserRole.DOCTOR, UserRole.POLICE])
+
+def require_exam_admin():
+    """Requiere permisos de administrador para gestionar exámenes"""
+    return require_admin()
+
 
 # Compatibilidad hacia atrás con el sistema anterior
 class FirebaseAuthCompatibility:

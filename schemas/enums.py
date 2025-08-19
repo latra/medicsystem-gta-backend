@@ -45,3 +45,9 @@ class Triage(str, Enum):
     YELLOW = "yellow"
     RED = "red"
     BLACK = "black"
+
+class ExamResultStatus(str, Enum):
+    PENDING = "pending"
+    PASSED = "passed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
