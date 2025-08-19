@@ -10,13 +10,13 @@ from typing import Optional, List
 class VitalSignsBase(BaseModel):
     """Esquema base para signos vitales"""
     heart_rate: Optional[int] = Field(None, ge=30, le=300, description="Frecuencia cardíaca (bpm)")
-    systolic_pressure: Optional[str] = Field(None, ge=50, le=300, description="Presión sistólica (mmHg)")
-    diastolic_pressure: Optional[str] = Field(None, ge=30, le=200, description="Presión diastólica (mmHg)")
-    temperature: Optional[float] = Field(None, ge=30.0, le=45.0, description="Temperatura corporal (°C)")
-    oxygen_saturation: Optional[int] = Field(None, ge=70, le=100, description="Saturación de oxígeno (%)")
-    respiratory_rate: Optional[int] = Field(None, ge=8, le=60, description="Frecuencia respiratoria (rpm)")
-    weight: Optional[float] = Field(None, ge=0, le=500, description="Peso (kg)")
-    height: Optional[float] = Field(None, ge=0, le=300, description="Altura (cm)")
+    systolic_pressure: Optional[str] = Field(None, description="Presión sistólica (mmHg)")
+    diastolic_pressure: Optional[str] = Field(None, description="Presión diastólica (mmHg)")
+    temperature: Optional[str] = Field(None, description="Temperatura corporal (°C)")
+    oxygen_saturation: Optional[str] = Field(None, description="Saturación de oxígeno (%)")
+    respiratory_rate: Optional[str] = Field(None, description="Frecuencia respiratoria (rpm)")
+    weight: Optional[str] = Field(None, description="Peso (kg)")
+    height: Optional[str] = Field(None, description="Altura (cm)")
     notes: Optional[str] = Field(None, description="Observaciones sobre los signos vitales")
 
 
